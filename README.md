@@ -2,6 +2,27 @@
 1. npm init -y
 2. intall :  npm i express jsonwebtoken dotenv
 3. npm install --save-dev nodemon
+4. npm install mongoose 
+5. npm i redis
+
+Configure Mongo DB
+1. Nagavite to MongoDB: https://cloud.mongodb.com/v2/6308ff5a3ed5a42f4d99b0d7#/clusters
+2. Create Project, Enter Project Name --> Click Create Project
+3. Click Build Database -- Click Free - Add Database user and not username and password. You will need it for MongoURI
+4. Configure Network Access, set to Allow access from anywhere
+5. On cluster tab, click connect.
+6. Select Drivers option and get MongoURI
+7. Add MongoURI to env file. Note must be off network to connect.
+
+Run Docker Redis Image
+
+1. Spin up docker continer:
+   * docker run -d -p 6379:6379 --name nodejs-redis -v ~/DonteSmall/CodeworkSpace redis-data-nodejs:/data redis --appendonly yes
+
+2. Open Docker to Start deamon
+3. Check docker container is running : 
+   * docker ps 
+
 
 
 Redis CLI Commands
