@@ -32,7 +32,7 @@ async function Login (req, res) {
           // Create JWT
         // can add token requirements here to frist part of jwt.sign
         const access_token = jwt.sign({sub: user._id},process.env.JWT_ACCESS_SECRET, {expiresIn: process.env.JWT_ACCESS_TIME}) // payload
-        const refresh_token = generateRefreshToken(user._id);
+        const refresh_token = GenerateRefreshToken(user._id);
         return res.json({status: true, message:  'Login Successful', data:{access_token: access_token, refresh_token: refresh_token}});
            
         
@@ -69,13 +69,13 @@ function GetAccessToken(req, res){
     const user_id= req.userData.sub;
     // can add token requirements here to frist part of jwt.sign
     const access_token = jwt.sign({sub: user_id},process.env.JWT_ACCESS_SECRET, {expiresIn: process.env.JWT_ACCESS_TIME}) // payload
-    const refresh_token = generateRefreshToken(user_id);
+    const refresh_token = GenerateRefreshToken(user_id);
 
     return res.json({status: true, message:  'Login Successful', data:{access_token: access_token, refresh_token: refresh_token}});
 
 }
 
-function generateRefreshToken(user_id) {
+function GenerateRefreshToken(user_id) {
 
     const refresh_token = jwt.sign({sub: user_id},process.env.JWT_REFRESH_SECRET, {expiresIn: process.env.JWT_REFRESH_TIME}) // payload
 
@@ -85,23 +85,25 @@ function generateRefreshToken(user_id) {
         // set refresh token in redis
         redisClient.set(user_id.toString(), JSON.stringify({token: refresh_token}));
 
-        return refresh_token;
+       
 
     });
 
-
-    //Verify if token is in array !!!
-    let storedRefreshToken = refreshTokens.find((item) => item.username === username );
-
-    if(storedRefreshToken === undefined) {
-        //Add refresh token to array
-        refreshTokens.push({username: username, token: refresh_token});
-    } else {
-        //Update refresh token in array
-        refreshTokens[refreshTokens.findIndex(x => x.username === username)].token = refresh_token;
-
-    }
     return refresh_token;
+
+    
+    // //Verify if token is in array !!!
+    // let storedRefreshToken = refreshTokens.find((item) => item.username === username );
+
+    // if(storedRefreshToken === undefined) {
+    //     //Add refresh token to array
+    //     refreshTokens.push({username: username, token: refresh_token});
+    // } else {
+    //     //Update refresh token in array
+    //     refreshTokens[refreshTokens.findIndex(x => x.username === username)].token = refresh_token;
+
+    // }
+    // return refresh_token;
 }
 
 
