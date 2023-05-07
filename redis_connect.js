@@ -28,7 +28,7 @@ redisClient.on('end', () => {
 process.on('SIGINT', () => {
     redisClient.quit();
 })
-
+//client.connect() returns a promise. You gotta use .then() because you cannot call await outside of a function.
 redisClient.connect().then(() => {
     console.log('Connected to Redis');
 }).catch((err) => {
