@@ -15,77 +15,93 @@ async function Register(req, res) {
         // log the error in DB
         res.status(400).json({status: false, message: "Something Went Wrong", data:error});
     }
-    
 }
 
 async function Login (req, res) {
-
-    // Authenticate User
     const username = req.body.username;
-    // encrypt password!
     const password = req.body.password;
 
     try {
         const user = await User.findOne({username: username, password: password}).exec();
         
+
         if(user === null) res.status(401).json({status: false, message: "username or password is not valid."});
-
-        console.log("What is our user ", user)
+     
+        const access_token = jwt.sign({sub: user._id}, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_TIME});
         
-          // Create JWT
-        // can add token requirements here to frist part of jwt.sign
-        const access_token = jwt.sign({sub: user._id},process.env.JWT_ACCESS_SECRET, {expiresIn: process.env.JWT_ACCESS_TIME}) // payload
-
-        console.log("access_token ", access_token)
-
-        const refresh_token = GenerateRefreshToken(user._id);
-        console.log("LOGIN - refresh_token ", refresh_token)
-        return res.json({status: true, message:  'Successful Logged In', data:{access_token: access_token, refresh_token: refresh_token}});
-        
+        const refresh_token = GenerateRefreshToken(user._id.valueOf());
+       
+        return res.json({status: true, message: "login success", data: {access_token, refresh_token}});
     } catch (error) {
-
-
-    // Send JWT as response
-    return res.status(401).json({status: true, message: "login fail", data: error});
-        
-    }
+        return res.status(401).json({status: true, message: "login fail", data: error});
+    } 
 }
+
 
 async function Logout(req, res) {
 
     const user_id = req.userData.sub;
-
+    const token = req.token;
+    
     await redisClient.del(user_id.toString());
 
     // blacklist current access token
-    await redisClient.set('BL' + user_id.toString(), req.token);
+    await redisClient.set('BL' + user_id.toString(), token);
 
     // Send response
-    return res.json({status: true,message: 'Access granted - Logout Successful'});    
+    return res.json({status: true, message: 'Access granted - Logout Successful'});    
 }
-function GetAccessToken(req, res){
 
-    const user_id= req.userData.sub;
+function GetAccessToken(req, res){
+    console.log("GAT - req.userData ", req)
+
+    const user_id = req.userData.sub;
+
+    console.log("GAT - user_id ", user_id)
     // can add token requirements here to frist part of jwt.sign
-    const access_token = jwt.sign({sub: user_id},process.env.JWT_ACCESS_SECRET, {expiresIn: process.env.JWT_ACCESS_TIME}) // payload
+    const access_token = jwt.sign({sub: user_id}, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_TIME}); // payload
     const refresh_token = GenerateRefreshToken(user_id);
 
-    return res.json({status: true, message:  'Login Successful', data:{access_token: access_token, refresh_token: refresh_token}});
+    return res.json({status: true, message:  'Login Successful', data:{ access_token: access_token, refresh_token: refresh_token}});
 
 }
 
-function GenerateRefreshToken(user_id) {
+async function GenerateRefreshToken_XX(user_id) {
+    const { JWT_REFRESH_SECRET, JWT_REFRESH_TIME } = process.env;
+    const refresh_token = jwt.sign({ sub: user_id }, JWT_REFRESH_SECRET, { expires_in: JWT_REFRESH_TIME });
+    const id = user_id.toString();
+    try {
+      const result = await redisClient.get(id);
+      console.log('result', result)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+  
+
+ function GenerateRefreshToken(user_id) {
+    const refresh_token = jwt.sign({ sub: user_id }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_TIME });
+    // redisClient.set(user_id.toString(), JSON.stringify({token: refresh_token}));
+   
+    try {
+       redisClient.get(user_id.toString(), (err, data) => {
+            if(err) throw err;
+       
+            console.log('GRT - data', data);
+            console.log('GRT - data', user_id.toString());
     
-    const refresh_token = jwt.sign({sub: user_id},process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_TIME }) // payload
-    console.log("GRT - refresh_token ", refresh_token)
-
-    redisClient.get(user_id.toString(), (err, data) => {
-        if (err) throw err;
-        // set refresh token in redis
         redisClient.set(user_id.toString(), JSON.stringify({token: refresh_token}));
-
-    });
+        })
+        
+        
+    } catch (error) {
+        console.log("GRT - error ", error)
+        
+    }
+   
     return refresh_token;
 }
 
+
 module.exports = { Register, Login, Logout, GetAccessToken };
+

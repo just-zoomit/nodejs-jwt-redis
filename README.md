@@ -17,11 +17,12 @@ Configure Mongo DB
 Run Docker Redis Image
 
 1. Spin up docker continer:
-   * docker run -d -p 6379:6379 --name nodejs-redis -v ~/DonteSmall/CodeworkSpace redis-data-nodejs:/data redis --appendonly yes
+   *  docker run -d -p 6379:6379 --name nodejs-redis -v redis-data-nodejs:/data redis --appendonly yes
 
 2. Open Docker to Start deamon
 3. Check docker container is running : 
    * docker ps 
+   * docker stop nodejs-redis
 
 
 
@@ -60,3 +61,6 @@ FIFO Quene System Creation Steps:
    * LRAGNE mylist 0 0
    * LLEN mylist 
    * LRAGNE mylist 5 5
+
+### Source: 
+* https://stackoverflow.com/questions/70185436/redis-nodejs-server-error-client-is-closed

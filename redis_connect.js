@@ -2,10 +2,7 @@ const redis = require('redis');
 
 // connect to redis
 
-const redisClient = redis.createClient({
-    port: process.env.REDIS_PORT,
-    host: process.env.REDIS_HOST
-});
+const redisClient = redis.createClient(process.env.REDIS_PORT, process.env.REDIS_HOST);
 
 redisClient.on('connect', () => {
     console.log('Connected to Redis Client');
@@ -28,6 +25,7 @@ redisClient.on('end', () => {
 process.on('SIGINT', () => {
     redisClient.quit();
 })
+
 //client.connect() returns a promise. You gotta use .then() because you cannot call await outside of a function.
 redisClient.connect().then(() => {
     console.log('Connected to Redis');

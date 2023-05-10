@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 const connectDB = require("./config/db");
+const redisClient = require('./redis_connect');
 
 //connectDB();
 
@@ -9,6 +10,8 @@ const connectDB = require("./config/db");
 //middleware
 app.use(express.json());
 connectDB();
+
+
 
 // routes
 const auth_routes = require('./routes/auth.Route');
